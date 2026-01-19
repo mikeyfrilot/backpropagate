@@ -63,6 +63,7 @@ jobs:
           path: dist/
 
       - name: Install wheel
+        shell: bash
         run: |
           pip install dist/*.whl
 
