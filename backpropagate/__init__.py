@@ -89,17 +89,28 @@ from .security import (
     PathTraversalError,
 )
 
-# UI Security utilities (production-hardened)
-from .ui_security import (
-    SecurityConfig,
-    DEFAULT_SECURITY_CONFIG,
-    EnhancedRateLimiter,
-    FileValidator,
-    ALLOWED_DATASET_EXTENSIONS,
-    DANGEROUS_EXTENSIONS,
-    safe_gradio_handler,
-    log_security_event,
-)
+# UI Security utilities (production-hardened) - requires gradio
+try:
+    from .ui_security import (
+        SecurityConfig,
+        DEFAULT_SECURITY_CONFIG,
+        EnhancedRateLimiter,
+        FileValidator,
+        ALLOWED_DATASET_EXTENSIONS,
+        DANGEROUS_EXTENSIONS,
+        safe_gradio_handler,
+        log_security_event,
+    )
+except ImportError:
+    # Gradio not installed - UI security features unavailable
+    SecurityConfig = None  # type: ignore
+    DEFAULT_SECURITY_CONFIG = None  # type: ignore
+    EnhancedRateLimiter = None  # type: ignore
+    FileValidator = None  # type: ignore
+    ALLOWED_DATASET_EXTENSIONS = None  # type: ignore
+    DANGEROUS_EXTENSIONS = None  # type: ignore
+    safe_gradio_handler = None  # type: ignore
+    log_security_event = None  # type: ignore
 
 # Feature flags (detect available optional features)
 from .feature_flags import (
