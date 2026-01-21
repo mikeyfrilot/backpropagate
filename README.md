@@ -1,12 +1,56 @@
+<div align="center">
+
 # Backpropagate
 
-**Headless LLM Fine-Tuning** - Making fine-tuning accessible without the complexity.
+**Headless LLM Fine-Tuning** - Making fine-tuning accessible without the complexity
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![PyPI version](https://img.shields.io/pypi/v/backpropagate?color=blue&logo=pypi&logoColor=white)](https://pypi.org/project/backpropagate/)
+[![Downloads](https://img.shields.io/pypi/dm/backpropagate?color=green&logo=pypi&logoColor=white)](https://pypi.org/project/backpropagate/)
 [![CI](https://github.com/mikeyfrilot/backpropagate/actions/workflows/ci.yml/badge.svg)](https://github.com/mikeyfrilot/backpropagate/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/mikeyfrilot/backpropagate/graph/badge.svg)](https://codecov.io/gh/mikeyfrilot/backpropagate)
-[![PyPI version](https://badge.fury.io/py/backpropagate.svg)](https://badge.fury.io/py/backpropagate)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg?logo=python&logoColor=white)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub stars](https://img.shields.io/github/stars/mikeyfrilot/backpropagate?style=social)](https://github.com/mikeyfrilot/backpropagate)
+
+*Train LLMs in 3 lines of code. Export to Ollama in one more.*
+
+[Installation](#installation) • [Quick Start](#quick-start) • [Multi-Run Training](#multi-run-training-slao) • [Export to Ollama](#export--ollama-integration) • [Contributing](#contributing)
+
+</div>
+
+---
+
+## Why Backpropagate?
+
+| Problem | Solution |
+|---------|----------|
+| Fine-tuning is complex | 3 lines: load, train, save |
+| Windows is a nightmare | First-class Windows support |
+| VRAM management is hard | Auto batch sizing, GPU monitoring |
+| Model export is confusing | One-click GGUF + Ollama registration |
+| Long runs cause forgetting | Multi-run SLAO training |
+
+<!--
+## Demo
+
+<p align="center">
+  <img src="docs/assets/demo.gif" alt="Backpropagate Demo" width="600">
+</p>
+-->
+
+## Quick Start
+
+```bash
+pip install backpropagate[standard]
+```
+
+```python
+from backpropagate import Trainer
+
+trainer = Trainer("unsloth/Qwen2.5-7B-Instruct-bnb-4bit")
+trainer.train("my_data.jsonl", steps=100)
+trainer.export("gguf", quantization="q4_k_m")  # Ready for Ollama
+```
 
 ## Philosophy
 
@@ -38,13 +82,13 @@ pip install backpropagate[full]        # Everything
 | `export` | GGUF export for Ollama | llama-cpp-python |
 | `monitoring` | WandB + system monitoring | wandb, psutil |
 
-## Requirements
+### Requirements
 
 - Python 3.10+
 - CUDA-capable GPU (8GB+ VRAM recommended)
 - PyTorch 2.0+
 
-## Quick Start
+## Usage
 
 ### Use as Library
 
@@ -94,102 +138,7 @@ from backpropagate import launch
 launch(port=7862)
 ```
 
-## Feature Flags
-
-Check which features are installed:
-
-```python
-from backpropagate import FEATURES, list_available_features
-
-print(FEATURES)
-# {'unsloth': True, 'ui': True, 'validation': False, ...}
-
-for name, desc in list_available_features().items():
-    print(f"{name}: {desc}")
-```
-
-## CLI Usage
-
-```bash
-# Show system info and features
-backprop info
-
-# Show current configuration
-backprop config
-
-# Train a model
-backprop train \
-    --data my_data.jsonl \
-    --model unsloth/Qwen2.5-7B-Instruct-bnb-4bit \
-    --steps 100 \
-    --samples 1000
-
-# Multi-run training (recommended for best results)
-backprop multi-run \
-    --data HuggingFaceH4/ultrachat_200k \
-    --runs 5 \
-    --steps 100 \
-    --samples 1000
-
-# Export to GGUF for Ollama
-backprop export ./output/lora \
-    --format gguf \
-    --quantization q4_k_m \
-    --ollama \
-    --ollama-name my-model
-
-# Launch UI
-backpropagate --ui --port 7862
-```
-
-## Configuration
-
-All settings can be overridden via environment variables:
-
-```bash
-# Model settings
-BACKPROPAGATE_MODEL__NAME=unsloth/Llama-3.2-3B-Instruct-bnb-4bit
-BACKPROPAGATE_MODEL__MAX_SEQ_LENGTH=4096
-
-# Training settings
-BACKPROPAGATE_TRAINING__LEARNING_RATE=1e-4
-BACKPROPAGATE_TRAINING__MAX_STEPS=200
-BACKPROPAGATE_TRAINING__BATCH_SIZE=4
-
-# LoRA settings
-BACKPROPAGATE_LORA__R=32
-BACKPROPAGATE_LORA__ALPHA=64
-```
-
-Or use a `.env` file in your project root.
-
-## Dataset Formats
-
-### JSONL (Recommended)
-
-```json
-{"text": "<|im_start|>user\nWhat is Python?<|im_end|>\n<|im_start|>assistant\nPython is a programming language.<|im_end|>"}
-{"text": "<|im_start|>user\nExplain ML<|im_end|>\n<|im_start|>assistant\nML is...<|im_end|>"}
-```
-
-### CSV
-
-```csv
-text
-"<|im_start|>user\nHello<|im_end|>\n<|im_start|>assistant\nHi!<|im_end|>"
-```
-
-### HuggingFace Datasets
-
-Any dataset with a `text` column works:
-
-```python
-trainer.train(dataset="HuggingFaceH4/ultrachat_200k", samples=1000)
-```
-
-## Advanced Features
-
-### Multi-Run Training (SLAO)
+## Multi-Run Training (SLAO)
 
 Multiple short runs with LoRA merging prevents catastrophic forgetting and improves results:
 
@@ -230,75 +179,92 @@ trainer = MultiRunTrainer(
 result = trainer.run("my_data.jsonl")
 ```
 
-### Dataset Loading & Filtering
+## CLI Usage
 
-Load, validate, and filter datasets with quality controls:
+```bash
+# Show system info and features
+backprop info
 
-```python
-from backpropagate import DatasetLoader, detect_format
+# Show current configuration
+backprop config
 
-# Auto-detect format and load
-loader = DatasetLoader("my_data.jsonl")
-print(f"Format: {loader.detected_format}")
-print(f"Samples: {len(loader)}")
-print(f"Valid: {loader.is_valid}")
+# Train a model
+backprop train \
+    --data my_data.jsonl \
+    --model unsloth/Qwen2.5-7B-Instruct-bnb-4bit \
+    --steps 100 \
+    --samples 1000
 
-# Preview samples
-for sample in loader.preview(3):
-    print(sample)
+# Multi-run training (recommended for best results)
+backprop multi-run \
+    --data HuggingFaceH4/ultrachat_200k \
+    --runs 5 \
+    --steps 100 \
+    --samples 1000
 
-# Convert to ChatML format
-chatml_data = loader.to_chatml()
+# Export to GGUF for Ollama
+backprop export ./output/lora \
+    --format gguf \
+    --quantization q4_k_m \
+    --ollama \
+    --ollama-name my-model
 
-# Filter by quality
-filtered = loader.filter(
-    min_tokens=50,
-    max_tokens=2048,
-    min_turns=2,
-    require_assistant=True,
-)
-
-# Remove duplicates
-deduped = loader.deduplicate(method="exact")  # or "minhash"
+# Launch UI
+backpropagate --ui --port 7862
 ```
 
-### Perplexity-Based Filtering
+## Feature Flags
 
-Filter samples by perplexity score to remove outliers (requires model inference):
+Check which features are installed:
 
 ```python
-from backpropagate import DatasetLoader, PerplexityFilter, filter_by_perplexity
+from backpropagate import FEATURES, list_available_features
 
-# Option 1: Use DatasetLoader method
-loader = DatasetLoader("my_data.jsonl")
-filtered_loader, stats = loader.filter_perplexity(
-    model_name="gpt2",       # Model for scoring (gpt2, gpt2-medium, etc.)
-    min_percentile=5,        # Remove bottom 5% (too simple/repetitive)
-    max_percentile=95,       # Remove top 5% (noisy/unusual)
-)
-print(stats.summary())
+print(FEATURES)
+# {'unsloth': True, 'ui': True, 'validation': False, ...}
 
-# Option 2: Use standalone function
-samples = [{"text": "sample 1"}, {"text": "sample 2"}]
-filtered, stats = filter_by_perplexity(
-    samples,
-    model_name="gpt2",
-    min_percentile=5,
-    max_percentile=95,
-)
-
-# Option 3: Use PerplexityFilter class for more control
-pf = PerplexityFilter(model_name="gpt2", device="cuda", batch_size=16)
-scores = pf.score(samples)  # Get raw scores
-filtered = pf.filter_by_threshold(samples, scores, min_perplexity=10, max_perplexity=500)
+for name, desc in list_available_features().items():
+    print(f"{name}: {desc}")
 ```
 
-Perplexity measures how "surprised" a language model is by text:
-- **Low perplexity**: Very predictable (may be too simple or repetitive)
-- **Medium perplexity**: Natural, typical language
-- **High perplexity**: Unusual (may be noisy or low-quality)
+## Configuration
 
-### Export & Ollama Integration
+All settings can be overridden via environment variables:
+
+```bash
+# Model settings
+BACKPROPAGATE_MODEL__NAME=unsloth/Llama-3.2-3B-Instruct-bnb-4bit
+BACKPROPAGATE_MODEL__MAX_SEQ_LENGTH=4096
+
+# Training settings
+BACKPROPAGATE_TRAINING__LEARNING_RATE=1e-4
+BACKPROPAGATE_TRAINING__MAX_STEPS=200
+BACKPROPAGATE_TRAINING__BATCH_SIZE=4
+
+# LoRA settings
+BACKPROPAGATE_LORA__R=32
+BACKPROPAGATE_LORA__ALPHA=64
+```
+
+Or use a `.env` file in your project root.
+
+## Dataset Formats
+
+### JSONL (Recommended)
+
+```json
+{"text": "<|im_start|>user\nWhat is Python?<|im_end|>\n<|im_start|>assistant\nPython is a programming language.<|im_end|>"}
+```
+
+### HuggingFace Datasets
+
+Any dataset with a `text` column works:
+
+```python
+trainer.train(dataset="HuggingFaceH4/ultrachat_200k", samples=1000)
+```
+
+## Export & Ollama Integration
 
 Export trained models to various formats:
 
@@ -311,12 +277,6 @@ from backpropagate import (
     register_with_ollama,
 )
 
-# Export LoRA adapter
-result = export_lora(model, output_dir="./lora")
-
-# Export merged model (base + adapter)
-result = export_merged(model, tokenizer, output_dir="./merged")
-
 # Export to GGUF for Ollama/llama.cpp
 result = export_gguf(
     model,
@@ -326,36 +286,18 @@ result = export_gguf(
 )
 
 print(result.summary())
-# Export Complete
-#   Format: gguf
-#   Path: ./gguf/model-q4_k_m.gguf
-#   Size: 4096.0 MB
-#   Quantization: q4_k_m
-#   Time: 120.5s
-
-# Create Ollama Modelfile
-create_modelfile(
-    "./gguf/model-q4_k_m.gguf",
-    system_prompt="You are a helpful assistant.",
-    temperature=0.7,
-)
 
 # Register with Ollama
 register_with_ollama("./gguf/model-q4_k_m.gguf", "my-model")
 # Now run: ollama run my-model
 ```
 
-### GPU Safety Monitoring
+## GPU Safety Monitoring
 
 Monitor GPU health during training:
 
 ```python
-from backpropagate import (
-    check_gpu_safe,
-    get_gpu_status,
-    wait_for_safe_gpu,
-    GPUMonitor,
-)
+from backpropagate import check_gpu_safe, get_gpu_status, GPUMonitor
 
 # Quick safety check
 if check_gpu_safe():
@@ -366,10 +308,7 @@ status = get_gpu_status()
 print(f"GPU: {status.device_name}")
 print(f"Temperature: {status.temperature_c}C")
 print(f"VRAM: {status.vram_used_gb:.1f}/{status.vram_total_gb:.1f} GB")
-print(f"Condition: {status.condition}")  # SAFE, WARNING, CRITICAL, EMERGENCY
-
-# Wait for GPU to cool down
-wait_for_safe_gpu(max_wait=300)  # Wait up to 5 minutes
+print(f"Condition: {status.condition}")  # SAFE, WARNING, CRITICAL
 
 # Continuous monitoring during training
 with GPUMonitor(check_interval=30) as monitor:
@@ -415,14 +354,6 @@ backpropagate/
 ├── theme.py             # Ocean Mist Gradio theme
 └── ui.py                # Gradio interface
 ```
-
-### Key Design Principles
-
-1. **Modular by default** - Install only what you need
-2. **Smart defaults** - Works out of the box
-3. **Windows-first** - No multiprocessing nightmares
-4. **Fail gracefully** - Helpful error messages
-5. **Type-safe** - Full type hints
 
 ## API Reference
 
@@ -484,6 +415,15 @@ mypy backpropagate
 ruff check backpropagate
 ```
 
+## Related Projects
+
+Part of the **Compass Suite** for AI-powered development:
+
+- [Tool Compass](https://github.com/mikeyfrilot/tool-compass) - Semantic MCP tool discovery
+- [File Compass](https://github.com/mikeyfrilot/file-compass) - Semantic file search
+- [Integradio](https://github.com/mikeyfrilot/integradio) - Vector-embedded Gradio components
+- [Comfy Headless](https://github.com/mikeyfrilot/comfy-headless) - ComfyUI without the complexity
+
 ## License
 
 MIT License - see [LICENSE](LICENSE) for details.
@@ -493,4 +433,11 @@ MIT License - see [LICENSE](LICENSE) for details.
 - [Unsloth](https://github.com/unslothai/unsloth) for the amazing training optimizations
 - [HuggingFace](https://huggingface.co/) for transformers, datasets, and PEFT
 - [Gradio](https://gradio.app/) for the beautiful UI framework
-- Built with the same love as [Comfy Headless](https://github.com/mikeyfrilot/comfy-headless) and [Tool Compass](https://github.com/mikeyfrilot/tool-compass)
+
+---
+
+<div align="center">
+
+**[Documentation](https://github.com/mikeyfrilot/backpropagate#readme)** • **[Issues](https://github.com/mikeyfrilot/backpropagate/issues)** • **[Discussions](https://github.com/mikeyfrilot/backpropagate/discussions)**
+
+</div>
